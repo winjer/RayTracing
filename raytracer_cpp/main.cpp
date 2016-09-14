@@ -59,17 +59,20 @@ vec3 TraceRay(const vec3& rayorig, const vec3 &raydir, const int depth)
     // Here's how to print out a vector for inspection
     //std::cout << "Ray: " << glm::to_string(raydir) << std::endl;
     float distance;
+    vec3 light=vec3(1.0f, 1.0f, 0.0f);
+    vec3 intersection, normal;
+    float intensity;
+    Material material;
     
     for(std::vector<std::shared_ptr<SceneObject>>::const_iterator ci = sceneObjects.begin(); ci!= sceneObjects.end(); ci++) {
         if((*ci)->Intersects(rayorig, raydir, distance)) {
-            vec3 intersection = rayorig + (normalize(raydir) * distance);
-            Material material = (*ci)->GetMaterial(intersection);
-            return material.albedo;
+            intersection = rayorig + (normalize(raydir) * distance);
+            normal = (*ci)->GetSurfaceNormal(intersection);
+            intensity = dot(normal, light);
+            material = (*ci)->GetMaterial(intersection);
+            return intensity*material.albedo;
         }
     }
-
-    // For now, just convert the incoming ray to a 'color' to display it has it changes 
-    return vec3((raydir * .5f) + vec3(0.5f, 0.5f, 0.5f));
 }
 
 // Draw the scene by generating camera rays and tracing rays
