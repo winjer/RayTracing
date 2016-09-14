@@ -41,6 +41,13 @@ void InitScene()
     mat.reflectance = 0.0f;
     mat.emissive = vec3(0.0f, 0.0f, 0.0f);
     sceneObjects.push_back(std::make_shared<Sphere>(mat, vec3(-0.0f, 0.5f, 3.f), 0.5f));
+
+    // Green ball
+    mat.albedo = vec3(1.0f, 1.0f, 1.0f);
+    mat.specular = vec3(0.0f, 0.0f, 0.0f);
+    mat.reflectance = 0.0f;
+    mat.emissive = vec3(2.0f, 2.0f, 2.0f);
+    sceneObjects.push_back(std::make_shared<Sphere>(mat, vec3(2.8f, 0.8f, 2.0f), 0.8f));
     
     // White light (distant)
     mat.albedo = vec3(0.0f, 0.8f, 0.0f);
@@ -61,23 +68,28 @@ vec3 TraceRay(const vec3& rayorig, const vec3 &raydir, const int depth)
     float distance;
     vec3 light;
     vec3 intersection, normal;
-    float intensity;
+    float intensity=0.0f;
     Material material;
+    vec3 origin = vec3(0.0f, 0.0f, 0.0f);
+    vec3 accumulated = vec3(0.0f, 0.0f, 0.0f);
 
-    
     for(std::vector<std::shared_ptr<SceneObject>>::const_iterator ci = sceneObjects.begin(); ci!= sceneObjects.end(); ci++) {
         if((*ci)->Intersects(rayorig, raydir, distance)) {
             intersection = rayorig + (normalize(raydir) * distance);
             normal = (*ci)->GetSurfaceNormal(intersection);
             material = (*ci)->GetMaterial(intersection);
-            for(std::vector<std::shared_ptr<SceneObject>>::const_iterator em = sceneObjects.begin(); em!= sceneObjects.end(); em++) {
+            intensity = dot(normal, vec3(1.0f, 1.0f, 0.0f));
+            return intensity * material.albedo + material.emissive;
+            /*for(std::vector<std::shared_ptr<SceneObject>>::const_iterator em = sceneObjects.begin(); em!= sceneObjects.end(); em++) {
                 if((*em)->GetMaterial(intersection).emissive != vec3(0.0f, 0.0f, 0.0f)) {
                     // this object emits light
                     light = normalize((*em)->GetRayFrom(intersection));
                     intensity = dot(normal, light);
-                    return intensity*material.albedo;
+                    if(intensity < 0.0f)
+                        intensity=0.0f;
+                    accumulated += intensity*material.albedo;
                 }
-            }
+            }*/
         }
     }
 }
