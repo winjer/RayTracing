@@ -4,8 +4,8 @@
 #include "sceneobjects.h"
 #include "camera.h"
 
-const int ImageWidth = 512;
-const int ImageHeight = 512;
+const int ImageWidth = 2048;
+const int ImageHeight = 1024;
 const float FieldOfView = 60.0f;
 const int MaxDepth = 3;
 
@@ -59,18 +59,25 @@ vec3 TraceRay(const vec3& rayorig, const vec3 &raydir, const int depth)
     // Here's how to print out a vector for inspection
     //std::cout << "Ray: " << glm::to_string(raydir) << std::endl;
     float distance;
-    vec3 light=vec3(1.0f, 1.0f, 0.0f);
+    vec3 light;
     vec3 intersection, normal;
     float intensity;
     Material material;
+
     
     for(std::vector<std::shared_ptr<SceneObject>>::const_iterator ci = sceneObjects.begin(); ci!= sceneObjects.end(); ci++) {
         if((*ci)->Intersects(rayorig, raydir, distance)) {
             intersection = rayorig + (normalize(raydir) * distance);
             normal = (*ci)->GetSurfaceNormal(intersection);
-            intensity = dot(normal, light);
             material = (*ci)->GetMaterial(intersection);
-            return intensity*material.albedo;
+            for(std::vector<std::shared_ptr<SceneObject>>::const_iterator em = sceneObjects.begin(); em!= sceneObjects.end(); em++) {
+                if((*em)->GetMaterial(intersection).emissive != vec3(0.0f, 0.0f, 0.0f)) {
+                    // this object emits light
+                    light = normalize((*em)->GetRayFrom(intersection));
+                    intensity = dot(normal, light);
+                    return intensity*material.albedo;
+                }
+            }
         }
     }
 }
