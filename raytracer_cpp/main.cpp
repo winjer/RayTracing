@@ -65,31 +65,27 @@ vec3 TraceRay(const vec3& rayorig, const vec3 &raydir, const int depth)
 {
     // Here's how to print out a vector for inspection
     //std::cout << "Ray: " << glm::to_string(raydir) << std::endl;
-    float distance;
-    vec3 light;
-    vec3 intersection, normal;
-    float intensity=0.0f;
-    Material material;
-    vec3 origin = vec3(0.0f, 0.0f, 0.0f);
-    vec3 accumulated = vec3(0.0f, 0.0f, 0.0f);
 
     for(std::vector<std::shared_ptr<SceneObject>>::const_iterator ci = sceneObjects.begin(); ci!= sceneObjects.end(); ci++) {
+        float distance;
         if((*ci)->Intersects(rayorig, raydir, distance)) {
-            intersection = rayorig + (normalize(raydir) * distance);
-            normal = (*ci)->GetSurfaceNormal(intersection);
-            material = (*ci)->GetMaterial(intersection);
-            intensity = dot(normal, vec3(1.0f, 1.0f, 0.0f));
-            return intensity * material.albedo + material.emissive;
-            /*for(std::vector<std::shared_ptr<SceneObject>>::const_iterator em = sceneObjects.begin(); em!= sceneObjects.end(); em++) {
+            vec3 intersection = rayorig + (normalize(raydir) * distance);
+            Material material = (*ci)->GetMaterial(intersection);
+            vec3 normal = (*ci)->GetSurfaceNormal(intersection);
+            //intensity = dot(normal, vec3(1.0f, 1.0f, 0.0f));
+            //return intensity * material.albedo + material.emissive;
+            vec3 accumulated = vec3(0.0f, 0.0f, 0.0f);
+            for(std::vector<std::shared_ptr<SceneObject>>::const_iterator em = sceneObjects.begin(); em!= sceneObjects.end(); em++) {
                 if((*em)->GetMaterial(intersection).emissive != vec3(0.0f, 0.0f, 0.0f)) {
                     // this object emits light
-                    light = normalize((*em)->GetRayFrom(intersection));
-                    intensity = dot(normal, light);
+                    vec3 light = (*em)->GetRayFrom(intersection);
+                    float intensity = dot(normal, light);
                     if(intensity < 0.0f)
                         intensity=0.0f;
                     accumulated += intensity*material.albedo;
                 }
-            }*/
+            }
+            return accumulated;
         }
     }
 }
